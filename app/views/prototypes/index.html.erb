@@ -1,18 +1,17 @@
 <main class="main">
   <div class="inner">
     <%# ログインしているときは以下を表示する %>
-    <% if user_signed_in? %>
+    <% if user_signed_in? && current_user.id == prototype.user_id %>
       <div class="greeting">
         <p>こんにちは、<%= link_to current_user.name, user_path(current_user), class: :greeting__link %>さん</p>
-        
       </div>
+    <% end %>
     <%# // ログインしているときは上記を表示する %>
     <div class="card__wrapper">
-      <%# 投稿機能実装後、部分テンプレートでプロトタイプ投稿一覧を表示する %>
+    <%# 投稿機能実装後、部分テンプレートでプロトタイプ投稿一覧を表示する %>
       <% @prototypes.each do |prototype|%>
         <%= render partial: 'prototype', collection: @prototypes %>
       <%end%>
     </div>
-    <% end %>
   </div>
 </main>
