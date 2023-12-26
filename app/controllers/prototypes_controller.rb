@@ -1,10 +1,10 @@
 class PrototypesController < ApplicationController
-  before_action :move_to_index, except: [:index, :show, :new, :create]
-  before_action :authenticate_user!, except: [:index, :show]
-  before_action :correct_user, only: [:edit]
+  #before_action :move_to_index, except: [:index, :show, :new, :create]
+  before_action :authenticate_user!, only: [:new, :create, :edit, :update, :destroy] #except: [:index, :show]
+  before_action :correct_user, only: [:edit, :update, :show]
 
   def index
-    @prototypes = Prototype.all
+    @prototypes = Prototype.includes(:user).order("created_at DESC")
   end
 
   def show
@@ -38,11 +38,21 @@ class PrototypesController < ApplicationController
   end
 
   def create
-    @prototype = current_user.prototypes.new(prototype_params)
-    if @prototype.save
+    existing_prototype = current_user.prototypes.find_by(prototype_params.except(:image))
+
+    if existing_prototype
+      # すでに同じプロトタイプが存在する場合の処理
       redirect_to root_path
     else
+      @prototype = current_user.prototypes.new(prototype_params)
+      
+      if @prototype.save
+      # 重複するプロトタイプを削除
+      #@prototypes = Prototype.order(created_at: :desc)
+      redirect_to root_path
+      else
       render :new, status: :unprocessable_entity
+      end
     end
   end
 
@@ -58,12 +68,18 @@ class PrototypesController < ApplicationController
 
   def correct_user
     @prototype = Prototype.find(params[:id])
-    redirect_to root_path unless @prototype.user == current_user
+    # ログインしていない場合はログインページにリダイレクト
+    unless user_signed_in?
+      redirect_to new_user_session_path
+      return
+    end
+    # ログインしているが投稿者でない場合はトップページにリダイレクト
+    unless @prototype.user == current_user
+      redirect_to root_path
+    end
   end
   
   #def move_to_index
-   # unless user_signed_in?
-    #  redirect_to action: :index
-    #end
+   # redirect_to root_path unless user_signed_in?
   #end
 end
